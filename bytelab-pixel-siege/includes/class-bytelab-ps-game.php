@@ -122,6 +122,10 @@ final class BYTELAB_PS_Game {
 			'nonce'     => wp_create_nonce( 'wp_rest' ),
 			'canSave'   => (bool) ( $can_save && BYTELAB_PS_Settings::get( 'leaderboard', true ) ),
 			'showBrand' => (bool) BYTELAB_PS_Settings::get( 'show_brand', true ),
+			'userName'  => self::current_user_name(),
+			'customLevels'    => BYTELAB_PS_Levels::get(),
+			'leaderboardUrl'  => esc_url_raw( rest_url( 'bytelab-pixel-siege/v1/leaderboard' ) ),
+			'canBoard'        => (bool) BYTELAB_PS_Settings::get( 'leaderboard', true ),
 			'strings'   => self::strings(),
 		);
 
@@ -159,6 +163,16 @@ final class BYTELAB_PS_Game {
 	public static function lang() {
 		$locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
 		return 0 === strpos( $locale, 'fa' ) ? 'fa' : 'en';
+	}
+
+	/**
+	 * Display name of the visitor, used to highlight their leaderboard row.
+	 *
+	 * @return string
+	 */
+	public static function current_user_name() {
+		$user = wp_get_current_user();
+		return $user && $user->exists() ? (string) $user->display_name : '';
 	}
 
 	/**
@@ -204,6 +218,15 @@ final class BYTELAB_PS_Game {
 			'tapToStart'  => 'Tap or press space to start',
 			'perfect'     => 'PERFECT',
 			'newBest'     => 'NEW BEST',
+			'leaderboard' => 'LEADERBOARD',
+			'rank'        => 'RANK',
+			'player'      => 'PLAYER',
+			'loading'     => 'Loading scores…',
+			'emptyBoard'  => 'No scores here yet — be the first.',
+			'boardError'  => 'Scores are unavailable right now.',
+			'you'         => 'YOU',
+			'boardOff'    => 'The leaderboard is turned off.',
+			'customLevels'=> 'CUSTOM LEVELS',
 		);
 
 		$strings = array();
@@ -222,4 +245,6 @@ final class BYTELAB_PS_Game {
 		return $strings;
 	}
 }
+
+
 

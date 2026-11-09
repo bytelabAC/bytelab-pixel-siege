@@ -24,6 +24,7 @@ define( 'BYTELAB_PS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BYTELAB_PS_URL', plugin_dir_url( __FILE__ ) );
 define( 'BYTELAB_PS_BASENAME', plugin_basename( __FILE__ ) );
 
+require_once BYTELAB_PS_DIR . 'includes/class-bytelab-ps-levels.php';
 require_once BYTELAB_PS_DIR . 'includes/class-bytelab-ps-settings.php';
 require_once BYTELAB_PS_DIR . 'includes/class-bytelab-ps-assets.php';
 require_once BYTELAB_PS_DIR . 'includes/class-bytelab-ps-scores.php';
@@ -43,3 +44,4 @@ add_action( 'plugins_loaded', 'bytelab_ps', 5 );
 
 register_activation_hook( __FILE__, array( 'BYTELAB_PS_Plugin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'BYTELAB_PS_Plugin', 'deactivate' ) );
+

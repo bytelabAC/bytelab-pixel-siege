@@ -28,6 +28,7 @@ final class BYTELAB_PS_Settings {
 			'leaderboard'     => 1,
 			'show_brand'      => 1,
 			'custom_strings'  => '',
+			'custom_levels'   => '',
 		);
 	}
 
@@ -114,6 +115,7 @@ final class BYTELAB_PS_Settings {
 			'leaderboard'    => __( 'Expose the leaderboard endpoint', 'bytelab-pixel-siege' ),
 			'show_brand'     => __( 'Show the BYTELAB trademark line', 'bytelab-pixel-siege' ),
 			'custom_strings' => __( 'Custom copy overrides', 'bytelab-pixel-siege' ),
+			'custom_levels'  => __( 'Custom levels (JSON)', 'bytelab-pixel-siege' ),
 		);
 
 		foreach ( $fields as $key => $label ) {
@@ -168,6 +170,15 @@ final class BYTELAB_PS_Settings {
 					esc_html__( 'The game keeps a 16:9 ratio and is capped to this height.', 'bytelab-pixel-siege' )
 				);
 				break;
+			case 'custom_levels':
+				printf(
+					'<textarea rows="12" cols="60" class="large-text code" spellcheck="false" name="%1$s" id="bytelab-ps-%2$s">%3$s</textarea><p class="description">%4$s</p>',
+					esc_attr( $name ),
+					esc_attr( $key ),
+					esc_textarea( (string) $value ),
+					esc_html__( 'A JSON array of levels. Blocks may be placed by centre (y) or by the surface they stand on (baseY); bugs accept y or surfaceY. Leave empty to use the twenty built-in levels only.', 'bytelab-pixel-siege' )
+				);
+				break;
 			case 'custom_strings':
 				printf(
 					'<textarea rows="6" cols="60" class="large-text code" name="%1$s" id="bytelab-ps-%2$s">%3$s</textarea><p class="description">%4$s</p>',
@@ -209,6 +220,9 @@ final class BYTELAB_PS_Settings {
 
 		$strings = isset( $input['custom_strings'] ) ? (string) $input['custom_strings'] : '';
 		$clean['custom_strings'] = sanitize_textarea_field( $strings );
+
+		$raw_levels              = isset( $input['custom_levels'] ) ? (string) $input['custom_levels'] : '';
+		$clean['custom_levels']  = BYTELAB_PS_Levels::validate_json( $raw_levels );
 
 		return $clean;
 	}

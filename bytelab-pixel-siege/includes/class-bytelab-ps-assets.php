@@ -33,10 +33,21 @@ final class BYTELAB_PS_Assets {
 	public static function register() {
 		$js = BYTELAB_PS_URL . 'assets/js/';
 
+		$style_deps = array();
+		if ( self::has_fonts() ) {
+			wp_register_style(
+				'bytelab-ps-fonts',
+				BYTELAB_PS_URL . 'assets/css/fonts.css',
+				array(),
+				BYTELAB_PS_VERSION
+			);
+			$style_deps[] = 'bytelab-ps-fonts';
+		}
+
 		wp_register_style(
 			self::HANDLE,
 			BYTELAB_PS_URL . 'assets/css/game.css',
-			array(),
+			$style_deps,
 			BYTELAB_PS_VERSION
 		);
 
@@ -51,6 +62,19 @@ final class BYTELAB_PS_Assets {
 			BYTELAB_PS_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Are the bundled brand fonts present?
+	 *
+	 * @return bool
+	 */
+	public static function has_fonts() {
+		$dir = BYTELAB_PS_DIR . 'assets/fonts/';
+		return file_exists( $dir . 'Vazirmatn-Regular.woff2' )
+			&& file_exists( $dir . 'Vazirmatn-Bold.woff2' )
+			&& file_exists( $dir . 'JetBrainsMono-Regular.woff2' )
+			&& file_exists( $dir . 'JetBrainsMono-Bold.woff2' );
 	}
 
 	/**

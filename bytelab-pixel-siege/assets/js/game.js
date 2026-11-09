@@ -11,6 +11,7 @@
   if (!Sim || !Render || !Levels) { return; }
 
   var api = { instances: [], boot: null };
+  var levelsExtended = false;
   var STORAGE_KEY = 'bytelab.pixelSiege.v1';
   var W = 1280, H = 720;
 
@@ -47,7 +48,17 @@
       saved: 'Score saved',
       tapToStart: 'Tap or press space to start',
       perfect: 'PERFECT',
-      newBest: 'NEW BEST'
+      newBest: 'NEW BEST',
+      leaderboard: 'LEADERBOARD',
+      rank: 'RANK',
+      player: 'PLAYER',
+      loading: 'Loading scores…',
+      emptyBoard: 'No scores here yet — be the first.',
+      boardError: 'Scores are unavailable right now.',
+      boardOff: 'The leaderboard is turned off.',
+      you: 'YOU',
+      customLevels: 'CUSTOM',
+      levelCleared: 'CLEARED'
     },
     fa: {
       title: 'محاصره پیکسلی',
@@ -81,7 +92,17 @@
       saved: 'امتیاز ذخیره شد',
       tapToStart: 'برای شروع ضربه بزن یا فاصله را بزن',
       perfect: 'بی‌نقص',
-      newBest: 'رکورد جدید'
+      newBest: 'رکورد جدید',
+      leaderboard: 'جدول امتیازات',
+      rank: 'رتبه',
+      player: 'بازیکن',
+      loading: 'در حال گرفتن امتیازها…',
+      emptyBoard: 'هنوز امتیازی ثبت نشده — اولین نفر باش.',
+      boardError: 'دریافت امتیازها ممکن نشد.',
+      boardOff: 'جدول امتیازات خاموش است.',
+      you: 'شما',
+      customLevels: 'سفارشی',
+      levelCleared: 'پاک‌شده'
     }
   };
 
@@ -263,6 +284,7 @@
     var tools = document.createElement('div');
     tools.className = 'blps__tools';
     tools.appendChild(this.iconButton('sound', this.strings.soundOn, this.soundSvg()));
+    tools.appendChild(this.iconButton('board', this.strings.leaderboard, this.trophySvg()));
     tools.appendChild(this.iconButton('pause', this.strings.pause, this.pauseSvg()));
     tools.appendChild(this.iconButton('help', this.strings.help, this.helpSvg()));
     this.soundBtn = tools.querySelector('[data-act="sound"]');
@@ -346,6 +368,9 @@
   };
   Game.prototype.helpSvg = function () {
     return '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 9a3 3 0 016 0c0 2-3 2-3 4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11" y="16" width="2" height="2" fill="currentColor"/></svg>';
+  };
+  Game.prototype.trophySvg = function () {
+    return '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M7 4h10v5a5 5 0 01-10 0z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 5H4v2a3 3 0 003 3M17 5h3v2a3 3 0 01-3 3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="10" y="14" width="4" height="4" fill="currentColor"/><rect x="7" y="18" width="10" height="2" fill="currentColor"/></svg>';
   };
   Game.prototype.starSvg = function (filled) {
     var fill = filled ? '#F59E0B' : 'transparent';
@@ -449,6 +474,7 @@
       if (act === 'sound') { self.toggleSound(); }
       else if (act === 'pause') { self.pause(); }
       else if (act === 'help') { self.showHelp(); }
+      else if (act === 'board') { self.showLeaderboard(); }
       else if (act === 'close') { self.closeOverlay(); }
       else if (act === 'play') { self.startLevel(self.levelIndex); }
       else if (act === 'resume') { self.resume(); }
@@ -702,6 +728,7 @@
     row.className = 'blps__row';
     var play = this.button('play', this.strings.play + ' · ' + (this.levelIndex + 1), 'blps__btn--primary');
     row.appendChild(play);
+    row.appendChild(this.button('board', this.strings.leaderboard));
     panel.appendChild(row);
 
     var hint = document.createElement('p');
@@ -734,8 +761,143 @@
     this.overlay.appendChild(panel);
   };
 
-  Game.prototype.showResult = function (won, isBest) {
-    var g = this.game;
+  Game.prototype.boardRow = function (rank, entry) {
+    var row = document.createElement('div');
+    row.className = 'blps__board-row' + (entry.you ? ' is-you' : '');
+    row.setAttribute('role', 'row');
+
+    var r = document.createElement('span');
+    r.className = 'blps__board-cell blps__board-cell--rank';
+    r.textContent = String(rank);
+    r.setAttribute('role', 'cell');
+
+    var n = document.createElement('span');
+    n.className = 'blps__board-cell blps__board-cell--name';
+    n.textContent = entry.name || '—';
+    n.setAttribute('dir', 'auto');
+    n.setAttribute('role', 'cell');
+
+    var s = document.createElement('span');
+    s.className = 'blps__board-cell blps__board-cell--score';
+    s.textContent = String(entry.score || 0);
+    s.setAttribute('role', 'cell');
+
+    row.appendChild(r);
+    row.appendChild(n);
+    row.appendChild(s);
+
+    var st = document.createElement('span');
+    st.className = 'blps__board-stars';
+    st.setAttribute('role', 'cell');
+    st.setAttribute('aria-label', (entry.stars || 0) + '/' + 3);
+    for (var i = 0; i < 3; i++) {
+      var dot = document.createElement('i');
+      if (i >= (entry.stars || 0)) { dot.className = 'is-off'; }
+      st.appendChild(dot);
+    }
+    row.appendChild(st);
+
+    return row;
+  };
+
+  Game.prototype.showLeaderboard = function () {
+    var self = this;
+    var level = Levels.levels[this.levelIndex];
+
+    this.clearOverlay();
+    var panel = this.panel('blps__panel--board');
+    panel.appendChild(this.heading(this.strings.leaderboard));
+
+    var sub = document.createElement('p');
+    sub.className = 'blps__tagline';
+    sub.textContent = this.strings.level + ' ' + level.id + ' · ' + (level.name[this.lang] || level.name.en);
+    panel.appendChild(sub);
+
+    var board = document.createElement('div');
+    board.className = 'blps__board';
+    board.setAttribute('role', 'table');
+    board.setAttribute('aria-busy', 'true');
+
+    var head = document.createElement('div');
+    head.className = 'blps__board-row blps__board-row--head';
+    head.setAttribute('role', 'row');
+    var labels = [this.strings.rank, this.strings.player, this.strings.score];
+    var mods = ['rank', 'name', 'score'];
+    for (var i = 0; i < labels.length; i++) {
+      var cell = document.createElement('span');
+      cell.className = 'blps__board-cell blps__board-cell--' + mods[i];
+      cell.textContent = labels[i];
+      cell.setAttribute('role', 'columnheader');
+      head.appendChild(cell);
+    }
+    board.appendChild(head);
+
+    var body = document.createElement('div');
+    body.className = 'blps__board-body';
+    board.appendChild(body);
+    panel.appendChild(board);
+
+    var status = document.createElement('p');
+    status.className = 'blps__board-status';
+    status.textContent = this.strings.loading;
+    panel.appendChild(status);
+
+    var row = document.createElement('div');
+    row.className = 'blps__row';
+    row.appendChild(this.button('close', this.strings.close, 'blps__btn--primary'));
+    row.appendChild(this.button('levels', this.strings.levels));
+    panel.appendChild(row);
+    this.overlay.appendChild(panel);
+
+    if (this.cfg.canBoard === false) {
+      board.setAttribute('aria-busy', 'false');
+      status.textContent = this.strings.boardOff;
+      return;
+    }
+    if (!this.cfg.leaderboardUrl || !window.fetch) {
+      board.setAttribute('aria-busy', 'false');
+      status.textContent = this.strings.boardError;
+      return;
+    }
+
+    var url = this.cfg.leaderboardUrl +
+      (this.cfg.leaderboardUrl.indexOf('?') === -1 ? '?' : '&') + 'level=' + encodeURIComponent(level.id);
+
+    window.fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      .then(function (res) {
+        if (!res.ok) { throw new Error('http'); }
+        return res.json();
+      })
+      .then(function (data) {
+        var entries = (data && data.entries) || [];
+        body.innerHTML = '';
+        board.setAttribute('aria-busy', 'false');
+        if (!entries.length) {
+          status.textContent = self.strings.emptyBoard;
+          return;
+        }
+        status.textContent = '';
+        for (var i = 0; i < entries.length; i++) {
+          body.appendChild(self.boardRow(i + 1, entries[i]));
+        }
+        var onBoard = entries.some(function (e) { return e.you; });
+        var localBest = (self.saved.best && self.saved.best[level.id]) || 0;
+        if (localBest > 0 && !onBoard) {
+          body.appendChild(self.boardRow('·', {
+            name: self.cfg.userName || self.strings.you,
+            score: localBest,
+            stars: (self.saved.stars && self.saved.stars[level.id]) || 0,
+            you: true
+          }));
+        }
+      })
+      .catch(function () {
+        board.setAttribute('aria-busy', 'false');
+        status.textContent = self.strings.boardError;
+      });
+  };
+
+  Game.prototype.showResult = function (won, isBest) {    var g = this.game;
     var level = Levels.levels[this.levelIndex];
     this.clearOverlay();
     var panel = this.panel(won ? 'blps__panel--win' : 'blps__panel--lose');
@@ -849,6 +1011,22 @@
 
   function boot() {
     var nodes = document.querySelectorAll('[data-bytelab-game]');
+
+    // Custom levels are appended once, before the first game is constructed.
+    if (!levelsExtended) {
+      levelsExtended = true;
+      var extra = [];
+      for (var k = 0; k < nodes.length; k++) {
+        var extraCfg = parseConfig(nodes[k]);
+        if (extraCfg.customLevels && extraCfg.customLevels.length) {
+          extra = extra.concat(extraCfg.customLevels);
+        }
+      }
+      if (extra.length) {
+        Levels.extend(extra);
+      }
+    }
+
     for (var i = 0; i < nodes.length; i++) {
       if (nodes[i].getAttribute('data-blps-ready') === '1') { continue; }
       nodes[i].setAttribute('data-blps-ready', '1');
@@ -872,6 +1050,7 @@
   api.Game = Game;
   window.BYTELAB_PixelSiege = api;
 }());
+
 
 
 

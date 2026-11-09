@@ -14,13 +14,31 @@ const scripts = ['physics.js', 'levels.js', 'sim.js', 'render.js', 'game.js']
 
 const styles = read(path.join(css, 'game.css'));
 
+// Inline the brand webfonts so the demo keeps working offline, as one file.
+const fontsDir = path.join(plugin, 'assets', 'fonts');
+function fontFace(family, weight, file) {
+  const b64 = fs.readFileSync(path.join(fontsDir, file)).toString('base64');
+  return '@font-face{font-family:"' + family + '";src:url(data:font/woff2;base64,' + b64 +
+    ') format("woff2");font-weight:' + weight + ';font-style:normal;font-display:swap}';
+}
+const fontCss = [
+  fontFace('Vazirmatn', 400, 'Vazirmatn-Regular.woff2'),
+  fontFace('Vazirmatn', 500, 'Vazirmatn-Medium.woff2'),
+  fontFace('Vazirmatn', 700, 'Vazirmatn-Bold.woff2'),
+  fontFace('JetBrains Mono', 400, 'JetBrainsMono-Regular.woff2'),
+  fontFace('JetBrains Mono', 700, 'JetBrainsMono-Bold.woff2')
+].join('\n');
+
 const config = {
   level: 1,
   lang: 'fa',
   dir: 'rtl',
   sound: true,
   canSave: false,
-  showBrand: true
+  showBrand: true,
+  canBoard: true,
+  leaderboardUrl: 'demo://leaderboard',
+  userName: 'BYTELAB Demo'
 };
 
 const html = `<!doctype html>
@@ -106,7 +124,9 @@ const html = `<!doctype html>
     body { padding: 18px 12px 28px; }
     .lead { font-size: 13px; }
   }
+${fontCss}
 ${styles}
+
 </style>
 </head>
 <body>
@@ -132,7 +152,7 @@ ${styles}
 <main>
   <p class="lead" id="lead">پرنده را از تیرکمان عقب بکش و رها کن. باگ‌ها را از بین ببر، بلوک‌ها را فرو بریز و ستاره بگیر. هر پرنده یک قابلیت دارد: «بولت» در حال پرواز شتاب می‌گیرد و «اسپارک» منفجر می‌شود.</p>
   <div class="meta" aria-hidden="true">
-    <span>12 LEVELS</span><span>3 BIRDS</span><span>60% NAVY / 22% CYAN / 13% WHITE / 5% AMBER</span>
+    <span>20 LEVELS</span><span>3 BIRDS</span><span>60% NAVY / 22% CYAN / 13% WHITE / 5% AMBER</span>
   </div>
   <div class="blps" style="--blps-max-h:720px" data-bytelab-game='${JSON.stringify(config)}'></div>
 </main>
@@ -142,6 +162,23 @@ ${styles}
   <span>Byte Navy #0B1020 · Lab Cyan #22D3EE · Spark Amber #F59E0B</span>
 </footer>
 
+<script>
+/* The demo has no WordPress REST API, so serve a small sample leaderboard. */
+window.fetch = function () {
+  return Promise.resolve({
+    ok: true,
+    json: function () {
+      return Promise.resolve({ entries: [
+        { name: 'علی رضایی', score: 4820, stars: 3, you: true },
+        { name: 'Sara K.', score: 4310, stars: 3 },
+        { name: 'محمد', score: 3900, stars: 2 },
+        { name: 'Nima', score: 3260, stars: 2 },
+        { name: 'مهمان', score: 2100, stars: 1 }
+      ] });
+    }
+  });
+};
+</script>
 <script>
 ${scripts}
 </script>
@@ -185,5 +222,6 @@ fs.mkdirSync(outDir, { recursive: true });
 const out = path.join(outDir, 'bytelab-pixel-siege-demo.html');
 fs.writeFileSync(out, html, 'utf8');
 console.log('wrote', out, (html.length / 1024).toFixed(1) + ' kB');
+
 
 

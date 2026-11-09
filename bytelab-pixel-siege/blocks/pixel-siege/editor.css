@@ -1,0 +1,40 @@
+/* Block editor preview: keep the BYTELAB surface even before the game boots. */
+.blps-editor {
+	border: 1px dashed rgba(34, 211, 238, 0.35);
+	padding: 8px;
+}
+
+.blps-editor .blps {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	display: grid;
+	place-items: center;
+	background:
+		repeating-linear-gradient(0deg, rgba(34, 211, 238, 0.06) 0 1px, transparent 1px 32px),
+		repeating-linear-gradient(90deg, rgba(34, 211, 238, 0.06) 0 1px, transparent 1px 32px),
+		#0b1020;
+	border: 1px solid rgba(103, 232, 249, 0.25);
+	max-height: none;
+}
+
+.blps-editor .blps::before {
+	content: "BYTELAB · PIXEL SIEGE";
+	font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+	font-size: 13px;
+	letter-spacing: 0.32em;
+	color: #22d3ee;
+	opacity: 0.85;
+}
+
+.blps-editor .blps::after {
+	content: "";
+	position: absolute;
+	inset-block-end: 16px;
+	width: 64px;
+	height: 2px;
+	background: #f59e0b;
+}
+
+.blps-editor .blps__noscript {
+	display: none;
+}

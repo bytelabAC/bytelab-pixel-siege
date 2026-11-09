@@ -1,0 +1,52 @@
+/* BYTELAB Pixel Siege — admin settings screen */
+
+.bytelab-ps-admin__lede {
+	max-width: 680px;
+	font-size: 14px;
+}
+
+.bytelab-ps-admin__card {
+	max-width: 720px;
+	margin: 18px 0;
+	padding: 14px 18px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #22d3ee;
+}
+
+.bytelab-ps-admin__card h2 {
+	margin-top: 0;
+	font-size: 15px;
+	letter-spacing: 0.02em;
+}
+
+.bytelab-ps-admin__card code {
+	display: inline-block;
+	padding: 6px 10px;
+	background: #0b1020;
+	color: #67e8f9;
+	font-size: 13px;
+}
+
+.bytelab-ps-admin .form-table th {
+	font-weight: 600;
+}
+
+.bytelab-ps-admin .description {
+	color: #0e7490;
+}
+
+.bytelab-ps-admin .button-primary {
+	background: #22d3ee;
+	border-color: #22d3ee;
+	color: #0b1020;
+	text-shadow: none;
+	box-shadow: none;
+}
+
+.bytelab-ps-admin .button-primary:hover,
+.bytelab-ps-admin .button-primary:focus {
+	background: #67e8f9;
+	border-color: #67e8f9;
+	color: #0b1020;
+}

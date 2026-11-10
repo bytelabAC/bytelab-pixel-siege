@@ -29,6 +29,7 @@ final class BYTELAB_PS_Settings {
 			'show_brand'      => 1,
 			'custom_strings'  => '',
 			'custom_levels'   => '',
+			'show_intro'      => 1,
 		);
 	}
 
@@ -115,6 +116,7 @@ final class BYTELAB_PS_Settings {
 			'leaderboard'    => __( 'Expose the leaderboard endpoint', 'bytelab-pixel-siege' ),
 			'show_brand'     => __( 'Show the BYTELAB trademark line', 'bytelab-pixel-siege' ),
 			'custom_strings' => __( 'Custom copy overrides', 'bytelab-pixel-siege' ),
+			'show_intro'     => __( 'Show the bird briefing before each level', 'bytelab-pixel-siege' ),
 			'custom_levels'  => __( 'Custom levels (JSON)', 'bytelab-pixel-siege' ),
 		);
 
@@ -217,6 +219,7 @@ final class BYTELAB_PS_Settings {
 		$clean['allow_guests']  = empty( $input['allow_guests'] ) ? 0 : 1;
 		$clean['leaderboard']   = empty( $input['leaderboard'] ) ? 0 : 1;
 		$clean['show_brand']    = empty( $input['show_brand'] ) ? 0 : 1;
+		$clean['show_intro']    = empty( $input['show_intro'] ) ? 0 : 1;
 
 		$strings = isset( $input['custom_strings'] ) ? (string) $input['custom_strings'] : '';
 		$clean['custom_strings'] = sanitize_textarea_field( $strings );

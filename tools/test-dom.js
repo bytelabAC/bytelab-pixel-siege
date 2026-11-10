@@ -208,6 +208,8 @@ const g = new Game(root, JSON.parse(root.getAttribute('data-bytelab-game')), 0);
 console.log('constructed; children:', root.children.length, 'overlay hidden:', root.querySelector('.blps__overlay').hidden);
 
 g.startLevel(2);
+console.log('intro: screen', g.screen, 'roster items', root.querySelectorAll('.blps__roster-item').length, 'start button', !!root.querySelector('[data-act="intro-start"]'));
+g.beginPlay();
 console.log('started level', g.levelIndex + 1, 'phase', g.game.phase, 'screen', g.screen);
 
 let clock = 1000;
@@ -241,6 +243,7 @@ const btns = root.querySelectorAll('.blps__levelbtn');
 const frameEl = root.querySelector('.blps__frame');
 frameEl.fire('click', { target: btns[4] });
 console.log('after level click: level', g.levelIndex + 1, 'screen', g.screen, 'phase', g.game.phase);
+if (g.screen === 'intro') { g.beginPlay(); console.log('  -> briefing dismissed, screen', g.screen); }
 
 const soundBtn = root.querySelector('[data-act="sound"]');
 const before = g.muted;
@@ -262,6 +265,7 @@ console.log('board: busy', root.querySelector('.blps__board').getAttribute('aria
 
   // win flow through the real game loop
   g.startLevel(0);
+  g.beginPlay();
   const SL = context.BYTELAB_Levels.SLING;
   for (let shot = 0; shot < 3 && g.screen === 'playing'; shot++) {
     const gg = g.game;
@@ -280,6 +284,7 @@ console.log('board: busy', root.querySelector('.blps__board').getAttribute('aria
 
   // custom level is playable
   g.startLevel(Levels.count - 1);
+  g.beginPlay();
   frames(60);
   console.log('custom level play: level', g.levelIndex + 1, 'phase', g.game.phase, 'blocks', g.game.totalBlocks, 'bugs', g.game.totalBugs);
 

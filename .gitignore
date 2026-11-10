@@ -1,0 +1,28 @@
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Build and test artefacts
+tools/chrome-profile/
+tools/png/
+tools/_*.html
+tools/frames.json
+tools/dom.html
+
+# Python
+__pycache__/
+*.pyc
+
+# Release archives (built, not committed)
+*.zip
+
+# Editors
+.vscode/
+.idea/
+*.swp

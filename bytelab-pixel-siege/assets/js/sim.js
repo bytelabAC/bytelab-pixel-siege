@@ -15,11 +15,14 @@
   var LAUNCH_K = 10.6;
   var GRAVITY = 1500;
 
+  // Tougher than v1: a clean hit cracks a panel instead of deleting it, and
+  // steel (added for the late levels) needs a real plan.
   var MATERIALS = {
-    panel: { fill: '#141B34', stroke: '#67E8F9', hp: 2.0, toughness: 1700, density: 0.0055, score: 100, debris: '#67E8F9' },
-    wall: { fill: '#F8FAFC', stroke: '#0B1020', hp: 2.4, toughness: 2400, density: 0.0072, score: 150, debris: '#F8FAFC' },
-    glass: { fill: '#22D3EE', stroke: '#0B1020', hp: 1, toughness: 900, density: 0.0032, score: 80, debris: '#22D3EE' },
-    deep: { fill: '#0891B2', stroke: '#67E8F9', hp: 1.6, toughness: 1500, density: 0.0046, score: 90, debris: '#0891B2' }
+    panel: { fill: '#141B34', stroke: '#67E8F9', hp: 2.6, toughness: 2050, density: 0.0055, score: 100, debris: '#67E8F9' },
+    wall: { fill: '#F8FAFC', stroke: '#0B1020', hp: 3.6, toughness: 3100, density: 0.0075, score: 150, debris: '#F8FAFC' },
+    glass: { fill: '#22D3EE', stroke: '#0B1020', hp: 1.0, toughness: 820, density: 0.0032, score: 80, debris: '#22D3EE' },
+    deep: { fill: '#0891B2', stroke: '#67E8F9', hp: 2.2, toughness: 1900, density: 0.0048, score: 90, debris: '#0891B2' },
+    steel: { fill: '#141B34', stroke: '#F8FAFC', hp: 4.6, toughness: 4300, density: 0.0098, score: 220, debris: '#F8FAFC' }
   };
 
   var BIRDS = {

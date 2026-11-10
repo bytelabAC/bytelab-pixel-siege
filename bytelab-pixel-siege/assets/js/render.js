@@ -78,6 +78,10 @@
     this.reducedMotion = !!opts.reducedMotion;
     this.camera = { zoom: 1.1, x: 600, y: 345 };
     this.time = 0;
+    this.hop = null;
+    this.trail = [];
+    this.lastReadyKey = null;
+    this.lastPhase = null;
     this.resize();
   }
 
@@ -215,6 +219,10 @@
     ctx.fillRect(sx - 10, sy + 8, 20, 8);
     ctx.fillStyle = C.white;
     ctx.fillRect(sx - 22, GROUND - 6, 44, 6);
+    slingArms(ctx, C.white, 13);
+    ctx.fillStyle = C.cyan;
+    ctx.fillRect(sx - 32, sy - 25, 12, 9);
+    ctx.fillRect(sx + 20, sy - 25, 12, 9);
   }
 
   function slingArms(ctx, color, width) {
@@ -230,11 +238,12 @@
   }
 
   function drawSlingFront(ctx) {
-    slingArms(ctx, C.white, 13);
     var sx = SLING.x, sy = SLING.y;
+    // a small lip so the bird reads as being held by the pouch
+    ctx.fillStyle = C.panel;
+    ctx.fillRect(sx - 12, sy + 16, 24, 7);
     ctx.fillStyle = C.cyan;
-    ctx.fillRect(sx - 32, sy - 25, 12, 9);
-    ctx.fillRect(sx + 20, sy - 25, 12, 9);
+    ctx.fillRect(sx - 12, sy + 16, 24, 2);
   }
 
   function drawBands(ctx, game) {
@@ -327,67 +336,246 @@
     ctx.restore();
   }
 
-  function drawBug(ctx, b, time) {
-    var r = b.r;
-    var bob = Math.sin(time * 3 + b.id) * 1.2;
+  function px(ctx, x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, w, h);
+  }
+
+  // One visible wing, tinted so it reads on any body colour.
+  function wing(ctx, flap, r, alpha) {
     ctx.save();
-    ctx.translate(b.x, b.y + bob);
-    ctx.rotate(b.angle * 0.2);
-
-    pixelCircle(ctx, 0, 0, r, C.white, 4);
-    pixelRing(ctx, 0, 0, r, C.navy, 2, 4);
-
+    ctx.translate(-r * 0.1, r * 0.05);
+    ctx.rotate(flap);
+    ctx.globalAlpha = alpha;
     ctx.fillStyle = C.navy;
-    ctx.fillRect(-9, -5, 6, 7);
-    ctx.fillRect(3, -5, 6, 7);
-
-    var blink = (Math.sin(time * 2.4 + b.id * 1.7) > 0.6) ? 0.35 : 1;
-    ctx.fillStyle = rgba('#F59E0B', blink);
-    ctx.fillRect(-2, -r + 3, 4, 4);
-
-    ctx.strokeStyle = C.navy;
-    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-5, -r + 2); ctx.lineTo(-9, -r - 6);
-    ctx.moveTo(5, -r + 2); ctx.lineTo(9, -r - 6);
-    ctx.stroke();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-r * 0.8, -r * 0.2);
+    ctx.lineTo(-r * 0.72, r * 0.5);
+    ctx.lineTo(-r * 0.05, r * 0.42);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
   }
 
-  function drawBird(ctx, b, type, time) {
-    var r = b.r;
-    ctx.save();
-    ctx.translate(b.x, b.y);
-    ctx.rotate(b.angle);
+  function tailFeathers(ctx, color, r) {
+    ctx.fillStyle = color;
+    ctx.fillRect(-r - 8, -6, 7, 5);
+    ctx.fillRect(-r - 11, 0, 8, 5);
+    ctx.fillRect(-r - 8, 6, 7, 5);
+  }
 
-    if (type === 'spark') {
-      pixelCircle(ctx, 0, 0, r, C.amber, 4);
-      pixelRing(ctx, 0, 0, r, C.navy, 2, 4);
-      ctx.fillStyle = C.navy;
-      ctx.fillRect(-r * 0.5, -2, r, 4);
-      ctx.fillRect(-2, -r * 0.5, 4, r);
-    } else if (type === 'bolt') {
-      pixelCircle(ctx, 0, 0, r, C.liquid, 4);
-      pixelRing(ctx, 0, 0, r, C.navy, 2, 4);
-      ctx.fillStyle = C.navy;
-      ctx.fillRect(-4, -9, 8, 6);
-      ctx.fillRect(-8, -2, 8, 5);
-      ctx.fillRect(0, 3, 8, 6);
-      ctx.fillStyle = C.white;
-      ctx.fillRect(-2, -7, 2, 2);
-    } else {
-      pixelCircle(ctx, 0, 0, r, C.cyan, 4);
-      pixelRing(ctx, 0, 0, r, C.navy, 2, 4);
-      ctx.fillStyle = C.white;
-      ctx.fillRect(-8, -8, 7, 7);
-      ctx.fillRect(2, -8, 7, 7);
-      ctx.fillStyle = C.navy;
-      ctx.fillRect(-6, -6, 3, 3);
-      ctx.fillRect(4, -6, 3, 3);
-      ctx.fillStyle = C.amber;
-      ctx.fillRect(-3, 3, 5, 5);
+  function drawBug(ctx, b, time) {
+    var r = b.r;
+    var bob = Math.sin(time * 3.2 + b.id * 1.3) * 1.6;
+    var hurt = b.hp < b.maxHp - 0.01;
+
+    ctx.save();
+    ctx.translate(b.x, b.y + bob);
+    ctx.rotate(b.angle * 0.16);
+
+    // legs — cyan so they read on navy ground
+    var step = Math.sin(time * 6 + b.id) * 2;
+    ctx.fillStyle = rgba('#22D3EE', 0.85);
+    ctx.fillRect(-11, r - 3, 4, 8 + step);
+    ctx.fillRect(7, r - 3, 4, 8 - step);
+    ctx.fillRect(-17, r - 5, 4, 6);
+    ctx.fillRect(13, r - 5, 4, 6);
+
+    // body
+    pixelCircle(ctx, 0, 0, r, C.white, 4);
+    pixelRing(ctx, 0, 0, r, C.navy, 2, 4);
+
+    // eye sockets
+    ctx.fillStyle = C.navy;
+    ctx.fillRect(-11, -9, 22, 13);
+    ctx.fillStyle = C.amber;
+    ctx.fillRect(-9, -7, 7, 8);
+    ctx.fillRect(3, -7, 7, 8);
+    ctx.fillStyle = C.white;
+    ctx.fillRect(-8, -6, 2, 2);
+    ctx.fillRect(4, -6, 2, 2);
+    ctx.fillStyle = C.navy;
+    ctx.fillRect(-7, -3, 3, 3);
+    ctx.fillRect(5, -3, 3, 3);
+
+    // grin
+    ctx.fillStyle = C.navy;
+    ctx.fillRect(-7, 6, 3, 3);
+    ctx.fillRect(-4, 9, 8, 3);
+    ctx.fillRect(2, 6, 3, 3);
+
+    // antennae, drawn last so they sit above the head
+    var sway = Math.sin(time * 2.2 + b.id) * 2;
+    ctx.strokeStyle = C.cyan;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-5, -r + 2);
+    ctx.lineTo(-9 + sway, -r - 10);
+    ctx.moveTo(5, -r + 2);
+    ctx.lineTo(9 + sway, -r - 10);
+    ctx.stroke();
+    ctx.fillStyle = C.amber;
+    ctx.fillRect(-12 + sway, -r - 13, 5, 5);
+    ctx.fillRect(7 + sway, -r - 13, 5, 5);
+
+    // circuit glitch pixels
+    if (Math.sin(time * 5 + b.id * 3) > 0.3) {
+      ctx.fillStyle = C.cyan;
+      ctx.fillRect(r - 6, 1, 3, 3);
+      ctx.fillRect(-r + 3, 6, 3, 3);
+    }
+
+    if (hurt) {
+      ctx.strokeStyle = C.navy;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-r + 5, -r + 7);
+      ctx.lineTo(-7, -3);
+      ctx.lineTo(-13, 3);
+      ctx.stroke();
     }
     ctx.restore();
+  }
+
+  /**
+   * One bird, drawn from the same pixel vocabulary as the mark.
+   *
+   * @param {Object} b     {x, y, r, angle, vx, vy}
+   * @param {string} type  byte | bolt | spark
+   * @param {number} time  Seconds.
+   * @param {Object} opts  { scale, alpha, flying }
+   */
+  function drawBird(ctx, b, type, time, opts) {
+    opts = opts || {};
+    var r = b.r;
+    var scale = opts.scale || 1;
+    var flying = !!opts.flying;
+    var flap = flying ? Math.sin(time * 24) * 0.6 : Math.sin(time * 3.2) * 0.12;
+
+    var body = C.cyan;
+    if (type === 'bolt') { body = C.liquid; }
+    if (type === 'spark') { body = C.amber; }
+
+    var heading = 0;
+    if (flying && b.vx) {
+      var sp = Math.sqrt(b.vx * b.vx + (b.vy || 0) * (b.vy || 0));
+      if (sp > 80) { heading = Math.atan2(b.vy, b.vx) * 0.45; }
+    }
+
+    ctx.save();
+    ctx.globalAlpha = opts.alpha == null ? 1 : opts.alpha;
+    ctx.translate(b.x, b.y);
+    ctx.rotate(heading);
+    ctx.scale(scale, scale);
+
+    // tail
+    ctx.fillStyle = C.navy;
+    ctx.fillRect(-r - 8, -6, 8, 4);
+    ctx.fillRect(-r - 11, 0, 9, 4);
+
+    // body
+    pixelCircle(ctx, 0, 0, r, body, 4);
+    pixelRing(ctx, 0, 0, r, C.navy, 2, 4);
+
+    // belly
+    pixelCircle(ctx, 1, r * 0.44, r * 0.4, C.white, 4);
+
+    // near wing
+    wing(ctx, -flap, r * 0.85, 0.55);
+
+    if (type === 'spark') {
+      // fuse
+      ctx.fillStyle = C.navy;
+      ctx.fillRect(-3, -r - 11, 4, 11);
+      var sparkle = Math.sin(time * 10) > 0 ? 6 : 4;
+      ctx.fillStyle = C.white;
+      ctx.fillRect(-4, -r - 15, sparkle, sparkle);
+      ctx.fillStyle = C.amber;
+      ctx.fillRect(-2, -r - 18, 4, 4);
+      // visor
+      ctx.fillStyle = C.navy;
+      ctx.fillRect(-12, -8, 25, 10);
+      ctx.fillStyle = C.amber;
+      ctx.fillRect(-9, -6, 6, 5);
+      ctx.fillRect(3, -6, 6, 5);
+      ctx.fillStyle = C.white;
+      ctx.fillRect(-8, -5, 2, 2);
+      ctx.fillRect(4, -5, 2, 2);
+    } else if (type === 'bolt') {
+      // lightning crest
+      ctx.fillStyle = C.navy;
+      ctx.fillRect(-3, -r - 10, 6, 6);
+      ctx.fillRect(3, -r - 6, 6, 6);
+      ctx.fillRect(-9, -r - 6, 6, 6);
+      // visor
+      ctx.fillStyle = C.navy;
+      ctx.fillRect(-12, -8, 25, 9);
+      ctx.fillStyle = C.liquid;
+      ctx.fillRect(-9, -6, 8, 4);
+      ctx.fillRect(1, -6, 8, 4);
+      ctx.fillStyle = C.white;
+      ctx.fillRect(-8, -5, 3, 2);
+      ctx.fillRect(2, -5, 3, 2);
+    } else {
+      // crest
+      ctx.fillStyle = C.navy;
+      ctx.fillRect(-7, -r - 7, 4, 8);
+      ctx.fillRect(-2, -r - 10, 4, 11);
+      ctx.fillRect(3, -r - 7, 4, 8);
+      // eye
+      ctx.fillStyle = C.white;
+      ctx.fillRect(-2, -11, 12, 12);
+      ctx.fillStyle = C.navy;
+      ctx.fillRect(2, -8, 5, 6);
+      ctx.fillStyle = C.white;
+      ctx.fillRect(3, -7, 2, 2);
+      // angry brow
+      ctx.fillStyle = C.navy;
+      ctx.fillRect(-4, -14, 15, 4);
+    }
+
+    // beak — the one warm accent, and the thing that says "bird"
+    ctx.fillStyle = C.amber;
+    ctx.fillRect(r - 5, -3, 10, 6);
+    ctx.fillRect(r + 3, 0, 7, 4);
+    ctx.fillStyle = C.navy;
+    ctx.fillRect(r + 1, -3, 2, 6);
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawQueue(ctx, game, renderer) {
+    if (game.phase !== 'ready' || !game.birdType) { return; }
+    var q = game.queue;
+    var visible = Math.min(q.length - 1, 4);
+    for (var i = 1; i <= visible; i++) {
+      var type = q[i];
+      if (!type) { continue; }
+      var spec = type === 'spark' ? 22 : (type === 'bolt' ? 18 : 20);
+      var scale = 0.64;
+      var x = SLING.x - 56 - (i - 1) * 47;
+      var y = GROUND - spec * scale - 3 + Math.sin(renderer.time * 2.6 + i * 1.4) * 2;
+      drawBird(ctx, { x: x, y: y, r: spec, angle: 0 }, type, renderer.time + i, {
+        scale: scale,
+        alpha: 0.92 - i * 0.09,
+        flying: false
+      });
+    }
+  }
+
+  function drawTrail(ctx, trail) {
+    for (var i = 0; i < trail.length; i++) {
+      var g = trail[i];
+      var a = Math.max(0, 1 - g.t / 0.3) * 0.5;
+      if (a <= 0.02) { continue; }
+      ctx.globalAlpha = a;
+      ctx.fillStyle = g.color;
+      var s = 6 - Math.min(4, g.t * 12) * 2;
+      ctx.fillRect(g.x - s / 2, g.y - s / 2, s, s);
+      ctx.globalAlpha = 1;
+    }
   }
 
   function drawAimGuide(ctx, game) {
@@ -427,6 +615,33 @@
     var w = this.cssW, h = this.cssH;
     this.time += dt;
     dt = Math.min(dt || 0, 0.05);
+
+    // the freshly loaded bird hops from the queue onto the sling
+    var readyKey = (game.phase === 'ready' && game.queue.length) ? game.queue.join(',') : null;
+    if (readyKey && readyKey !== this.lastReadyKey && this.lastPhase !== null) {
+      this.hop = {
+        t: 0,
+        dur: 0.42,
+        from: { x: SLING.x - 56, y: GROUND - 16 }
+      };
+    }
+    this.lastReadyKey = readyKey;
+    this.lastPhase = game.phase;
+
+    // flight trail
+    if (game.bird && game.bird.alive && game.phase === 'flying') {
+      this.trail.push({
+        x: game.bird.x,
+        y: game.bird.y,
+        color: game.bird.birdType === 'spark' ? C.amber : (game.bird.birdType === 'bolt' ? C.liquid : C.cyan),
+        t: 0
+      });
+      if (this.trail.length > 12) { this.trail.shift(); }
+    }
+    for (var ti = this.trail.length - 1; ti >= 0; ti--) {
+      this.trail[ti].t += dt;
+      if (this.trail[ti].t > 0.3) { this.trail.splice(ti, 1); }
+    }
 
     var list = this.particles;
     for (var i = list.length - 1; i >= 0; i--) {
@@ -477,14 +692,26 @@
       if (bugs[gi].alive) { drawBug(ctx, bugs[gi], this.time); }
     }
 
+    drawTrail(ctx, this.trail);
+    drawQueue(ctx, game, this);
+
     drawBands(ctx, game);
     if (game.phase === 'ready' && game.birdType && !game.bird) {
       var bx = game.aim.active ? game.aim.x : SLING.x;
       var by = game.aim.active ? game.aim.y : SLING.y;
       var spec = (game.birdType === 'spark') ? 22 : (game.birdType === 'bolt' ? 18 : 20);
-      drawBird(ctx, { x: bx, y: by, r: spec, angle: 0 }, game.birdType, this.time);
+      var hop = (this.hop && !game.aim.active) ? this.hop : null;
+      if (hop) {
+        var p = hop.t / hop.dur;
+        var e = p < 1 ? 1 - Math.pow(1 - p, 3) : 1;
+        bx = hop.from.x + (SLING.x - hop.from.x) * e;
+        by = hop.from.y + (SLING.y - hop.from.y) * e - Math.sin(Math.PI * Math.min(1, p)) * 34;
+        if (p >= 1) { this.hop = null; }
+      }
+      drawBird(ctx, { x: bx, y: by, r: spec, angle: 0 }, game.birdType, this.time, { flying: !!hop });
+      if (this.hop) { this.hop.t += dt; }
     } else if (game.bird && game.bird.alive) {
-      drawBird(ctx, game.bird, game.bird.birdType, this.time);
+      drawBird(ctx, game.bird, game.bird.birdType, this.time, { flying: true });
     }
 
     drawSlingFront(ctx);
@@ -505,6 +732,10 @@
     pixelCircle: pixelCircle
   };
 }));
+
+
+
+
 
 
 

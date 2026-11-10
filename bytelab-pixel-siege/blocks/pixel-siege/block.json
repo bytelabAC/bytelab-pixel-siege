@@ -2,7 +2,7 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "bytelab/pixel-siege",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"title": "BYTELAB Pixel Siege",
 	"category": "widgets",
 	"icon": "games",
@@ -22,3 +22,4 @@
 	"editorScript": "file:./editor.js",
 	"editorStyle": "file:./editor.css"
 }
+

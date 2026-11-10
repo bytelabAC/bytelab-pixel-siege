@@ -126,6 +126,7 @@ final class BYTELAB_PS_Game {
 			'customLevels'    => BYTELAB_PS_Levels::get(),
 			'leaderboardUrl'  => esc_url_raw( rest_url( 'bytelab-pixel-siege/v1/leaderboard' ) ),
 			'canBoard'        => (bool) BYTELAB_PS_Settings::get( 'leaderboard', true ),
+			'showIntro'       => (bool) BYTELAB_PS_Settings::get( 'show_intro', true ),
 			'strings'   => self::strings(),
 		);
 
@@ -227,6 +228,17 @@ final class BYTELAB_PS_Game {
 			'you'         => 'YOU',
 			'boardOff'    => 'The leaderboard is turned off.',
 			'customLevels'=> 'CUSTOM LEVELS',
+			'introTitle'  => 'BRIEFING',
+			'introBirds'  => 'YOUR BIRDS',
+			'introStart'  => 'START',
+			'bugs'        => 'BUGS',
+			'blocks'      => 'BLOCKS',
+			'bird_byte'   => 'BYTE',
+			'bird_bolt'   => 'BOLT',
+			'bird_spark'  => 'SPARK',
+			'desc_byte'   => 'Balanced flier. No trick — just aim well.',
+			'desc_bolt'   => 'Tap in flight to dash forward and punch through.',
+			'desc_spark'  => 'Tap in flight to explode. Splash damage clears glass.',
 		);
 
 		$strings = array();

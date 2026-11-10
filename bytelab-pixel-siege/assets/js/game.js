@@ -58,7 +58,18 @@
       boardOff: 'The leaderboard is turned off.',
       you: 'YOU',
       customLevels: 'CUSTOM',
-      levelCleared: 'CLEARED'
+      levelCleared: 'CLEARED',
+      introTitle: 'BRIEFING',
+      introBirds: 'YOUR BIRDS',
+      introStart: 'START',
+      bugs: 'BUGS',
+      blocks: 'BLOCKS',
+      bird_byte: 'BYTE',
+      bird_bolt: 'BOLT',
+      bird_spark: 'SPARK',
+      desc_byte: 'Balanced flier. No trick — just aim well.',
+      desc_bolt: 'Tap in flight to dash forward and punch through.',
+      desc_spark: 'Tap in flight to explode. Splash damage clears glass.'
     },
     fa: {
       title: 'محاصره پیکسلی',
@@ -102,7 +113,18 @@
       boardOff: 'جدول امتیازات خاموش است.',
       you: 'شما',
       customLevels: 'سفارشی',
-      levelCleared: 'پاک‌شده'
+      levelCleared: 'پاک‌شده',
+      introTitle: 'آماده‌باش',
+      introBirds: 'پرنده‌های شما',
+      introStart: 'شروع',
+      bugs: 'باگ',
+      blocks: 'بلوک',
+      bird_byte: 'بایت',
+      bird_bolt: 'بولت',
+      bird_spark: 'اسپارک',
+      desc_byte: 'پرندهٔ متعادل؛ قابلیت ویژه‌ای ندارد، فقط خوب نشانه بگیر.',
+      desc_bolt: 'در حال پرواز ضربه بزن تا شتاب بگیرد و از موانع بگذرد.',
+      desc_spark: 'در حال پرواز ضربه بزن تا منفجر شود؛ شیشه را یک‌جا می‌شکند.'
     }
   };
 
@@ -360,6 +382,35 @@
       '<span class="blps__wordmark" aria-hidden="true"><b>BYTE</b><span>LAB</span></span>';
   };
 
+  Game.prototype.birdIcon = function (type, size) {
+    var fill = type === 'spark' ? '#F59E0B' : (type === 'bolt' ? '#67E8F9' : '#22D3EE');
+    var crest = '';
+    if (type === 'bolt') {
+      crest = '<rect x="20" y="0" width="7" height="7" fill="#0B1020"/>' +
+        '<rect x="27" y="4" width="7" height="7" fill="#0B1020"/>' +
+        '<rect x="15" y="4" width="7" height="7" fill="#0B1020"/>';
+    } else if (type === 'spark') {
+      crest = '<rect x="23" y="2" width="4" height="10" fill="#0B1020"/>' +
+        '<rect x="21" y="0" width="8" height="4" fill="#F8FAFC"/>';
+    } else {
+      crest = '<rect x="16" y="4" width="6" height="10" fill="#0B1020"/>' +
+        '<rect x="23" y="0" width="6" height="13" fill="#0B1020"/>' +
+        '<rect x="30" y="4" width="6" height="10" fill="#0B1020"/>';
+    }
+    var face = type === 'byte'
+      ? '<rect x="19" y="15" width="12" height="12" fill="#F8FAFC"/><rect x="23" y="18" width="6" height="7" fill="#0B1020"/>'
+      : '<rect x="13" y="15" width="24" height="11" fill="#0B1020"/><rect x="16" y="18" width="7" height="5" fill="' +
+        (type === 'spark' ? '#F59E0B' : '#67E8F9') + '"/><rect x="27" y="18" width="7" height="5" fill="' +
+        (type === 'spark' ? '#F59E0B' : '#67E8F9') + '"/>';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 48 48" aria-hidden="true" focusable="false">' +
+      crest +
+      '<circle cx="24" cy="28" r="17" fill="' + fill + '" stroke="#0B1020" stroke-width="3"/>' +
+      '<circle cx="24" cy="35" r="7" fill="#F8FAFC"/>' +
+      face +
+      '<polygon points="37,23 47,27 37,31" fill="#F59E0B" stroke="#0B1020" stroke-width="2"/>' +
+      '</svg>';
+  };
+
   Game.prototype.soundSvg = function () {
     return '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8l4 8M20 8l-4 8" stroke="currentColor" stroke-width="2" fill="none" class="blps__mute-line"/></svg>';
   };
@@ -417,6 +468,13 @@
     this.onKey = function (e) {
       var focused = self.el.contains(document.activeElement);
       if (!focused) { return; }
+      if (self.screen === 'intro') {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          self.beginPlay();
+        }
+        return;
+      }
       if (self.screen === 'playing' && !self.paused) {
         var g = self.game;
         if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -475,6 +533,7 @@
       else if (act === 'pause') { self.pause(); }
       else if (act === 'help') { self.showHelp(); }
       else if (act === 'board') { self.showLeaderboard(); }
+      else if (act === 'intro-start') { self.beginPlay(); }
       else if (act === 'close') { self.closeOverlay(); }
       else if (act === 'play') { self.startLevel(self.levelIndex); }
       else if (act === 'resume') { self.resume(); }
@@ -800,6 +859,83 @@
     return row;
   };
 
+  Game.prototype.showIntro = function () {
+    var level = Levels.levels[this.levelIndex];
+    this.screen = 'intro';
+    this.clearOverlay();
+    var panel = this.panel('blps__panel--intro');
+
+    panel.appendChild(this.heading(this.strings.introTitle));
+
+    var sub = document.createElement('p');
+    sub.className = 'blps__tagline';
+    sub.textContent = this.strings.level + ' ' + level.id + ' · ' + (level.name[this.lang] || level.name.en);
+    panel.appendChild(sub);
+
+    var roster = document.createElement('div');
+    roster.className = 'blps__roster';
+    var counts = {};
+    for (var i = 0; i < level.birds.length; i++) {
+      counts[level.birds[i]] = (counts[level.birds[i]] || 0) + 1;
+    }
+    var order = ['byte', 'bolt', 'spark'];
+    for (var k = 0; k < order.length; k++) {
+      var type = order[k];
+      if (!counts[type]) { continue; }
+      var item = document.createElement('div');
+      item.className = 'blps__roster-item blps__roster-item--' + type;
+
+      var icon = document.createElement('div');
+      icon.className = 'blps__roster-icon';
+      icon.innerHTML = this.birdIcon(type, 38);
+
+      var body = document.createElement('div');
+      body.className = 'blps__roster-copy';
+
+      var name = document.createElement('div');
+      name.className = 'blps__roster-name';
+      name.textContent = this.strings['bird_' + type] + ' ×' + counts[type];
+
+      var desc = document.createElement('div');
+      desc.className = 'blps__roster-desc';
+      desc.textContent = this.strings['desc_' + type];
+
+      body.appendChild(name);
+      body.appendChild(desc);
+      item.appendChild(icon);
+      item.appendChild(body);
+      roster.appendChild(item);
+    }
+    panel.appendChild(roster);
+
+    var meta = document.createElement('p');
+    meta.className = 'blps__intro-meta';
+    meta.textContent = level.bugs.length + ' ' + this.strings.bugs + ' · ' + level.blocks.length + ' ' + this.strings.blocks;
+    panel.appendChild(meta);
+
+    var row = document.createElement('div');
+    row.className = 'blps__row';
+    row.appendChild(this.button('intro-start', this.strings.introStart, 'blps__btn--primary'));
+    panel.appendChild(row);
+
+    this.overlay.appendChild(panel);
+    var startBtn = this.overlay.querySelector('[data-act="intro-start"]');
+    if (startBtn && startBtn.focus) { startBtn.focus({ preventScroll: true }); }
+  };
+
+  Game.prototype.beginPlay = function () {
+    this.closeOverlay();
+    this.screen = 'playing';
+    this.paused = false;
+    this.acc = 0;
+    this.displayScore = 0;
+    this.lastBirds = null;
+    try { this.frame.focus({ preventScroll: true }); } catch (e) { }
+    this.updateHud();
+    var level = Levels.levels[this.levelIndex];
+    this.showToast(this.strings.level + ' ' + level.id + ' · ' + (level.name[this.lang] || level.name.en));
+  };
+
   Game.prototype.showLeaderboard = function () {
     var self = this;
     var level = Levels.levels[this.levelIndex];
@@ -951,17 +1087,18 @@
     this.closeOverlay();
     this.levelIndex = Math.max(0, Math.min(Levels.count - 1, idx));
     this.game = Sim.create(this.levelIndex, { seed: 7 + this.levelIndex * 13 });
-    this.screen = 'playing';
     this.paused = false;
     this.acc = 0;
     this.displayScore = 0;
     this.lastBirds = null;
     this.kbAim = null;
-    // keep keyboard focus inside the widget without painting a ring for mouse play
-    try { this.frame.focus({ preventScroll: true }); } catch (e) { }
-    this.updateHud();
-    var level = Levels.levels[this.levelIndex];
-    this.showToast(this.strings.level + ' ' + level.id + ' · ' + (level.name[this.lang] || level.name.en));
+    this.renderer.hop = null;
+    if (this.cfg.showIntro === false) {
+      this.beginPlay();
+    } else {
+      this.showIntro();
+      this.updateHud();
+    }
   };
 
   Game.prototype.restartLevel = function () {

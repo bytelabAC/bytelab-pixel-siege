@@ -247,14 +247,14 @@
       }
       // shoulders 5 wide
       for (var j = 0; j < 5; j++) {
-        p.blocks.push(cube(cx - 2 * size + j * size, GROUND - 2 * size, size, 'deep'));
+        p.blocks.push(cube(cx - 2 * size + j * size, GROUND - 2 * size, size, 'steel'));
       }
       // neck 3 wide
       for (var k = 0; k < 3; k++) {
         p.blocks.push(cube(cx - size + k * size, GROUND - 3 * size, size, 'wall'));
       }
       // cap
-      p.blocks.push(cube(cx, GROUND - 4 * size, size, 'deep'));
+      p.blocks.push(cube(cx, GROUND - 4 * size, size, 'steel'));
       p.bugs.push(bug(cx, GROUND - 5 * size));
       p.bugs.push(bug(790, GROUND));
       p.bugs.push(bug(1120, GROUND - 2 * size));
@@ -379,7 +379,7 @@
       var xs = [780, 880, 980, 1080];
       for (var i = 0; i < xs.length; i++) {
         for (var r = 0; r < 3; r++) {
-          p.blocks.push(block(xs[i], GROUND - 29 - r * 58, 46, 58, r === 1 ? 'deep' : 'wall'));
+          p.blocks.push(block(xs[i], GROUND - 29 - r * 58, 46, 58, r === 1 ? 'steel' : 'wall'));
         }
         p.blocks.push(cube(xs[i], GROUND - 174, 40, 'glass'));
         p.bugs.push(bug(xs[i], GROUND - 214, 18));
@@ -394,10 +394,10 @@
     birds: ['bolt', 'spark', 'byte', 'bolt', 'spark', 'byte'],
     level: (function () {
       var p = pack();
-      p.blocks.push(stud(820, GROUND, 210, 'deep', 34));
-      p.blocks.push(stud(1080, GROUND, 210, 'deep', 34));
+      p.blocks.push(stud(820, GROUND, 210, 'steel', 34));
+      p.blocks.push(stud(1080, GROUND, 210, 'steel', 34));
       var top = GROUND - 210;
-      p.blocks.push(lintel(950, top, 380, 'deep', 26));
+      p.blocks.push(lintel(950, top, 380, 'steel', 26));
       var deck = top - 26;
       p.blocks.push(stud(950, deck, 90, 'glass', 24));
       p.blocks.push(cube(950, deck - 90, 44, 'wall'));
@@ -437,7 +437,7 @@
       frame(p, 1060, 110, GROUND, 130, 'glass');
       p.blocks.push(lintel(960, wings, 380, 'panel', 24));
       var deck = wings - 24;
-      frame(p, 960, 100, deck, 100, 'deep');
+      frame(p, 960, 100, deck, 100, 'steel');
       p.blocks.push(cube(960, deck - 124, 44, 'wall'));
       p.bugs.push(bug(880, GROUND));
       p.bugs.push(bug(1040, GROUND));
@@ -461,12 +461,12 @@
         }
       }
       for (var j = 0; j < 5; j++) {
-        p.blocks.push(cube(cx - 2 * size + j * size, GROUND - 2 * size, size, 'deep'));
+        p.blocks.push(cube(cx - 2 * size + j * size, GROUND - 2 * size, size, 'steel'));
       }
       for (var k = 0; k < 3; k++) {
         p.blocks.push(cube(cx - size + k * size, GROUND - 3 * size, size, 'wall'));
       }
-      p.blocks.push(cube(cx, GROUND - 4 * size, size, 'deep'));
+      p.blocks.push(cube(cx, GROUND - 4 * size, size, 'steel'));
       p.bugs.push(bug(cx, GROUND - 5 * size, 18));
       p.bugs.push(bug(868, GROUND - 2 * size, 18));
       p.bugs.push(bug(1132, GROUND - 2 * size, 18));
@@ -510,7 +510,7 @@
     };
   }
 
-  var MATERIALS = { panel: 1, wall: 1, glass: 1, deep: 1 };
+  var MATERIALS = { panel: 1, wall: 1, glass: 1, deep: 1, steel: 1 };
   var BIRDS = { byte: 1, bolt: 1, spark: 1 };
 
   function num(v, fallback) {
@@ -634,6 +634,7 @@
 
   return api;
 }));
+
 
 
 

@@ -1,95 +1,99 @@
 # BYTELAB · Pixel Siege
 
-بازی تحت‌وب «کشیدن و شلیک» (سبک Angry Birds) به‌صورت **افزونه وردپرس**، ساخته‌شده دقیقاً بر اساس **BYTELAB Brand Style Guide v1.3**.
+**A pull-and-fling physics game for WordPress, drawn entirely with the BYTELAB "Pixel Flask" brand system.**
 
-تمام گرافیک با همان زبان بصری برند رسم می‌شود: بلوک‌های پیکسلی، پس‌زمینهٔ Byte Navy، بلوک‌های Lab Cyan، لبه‌های Cloud White و فقط یک لهجهٔ کوچک Spark Amber. بدون گرادیان، بدون سایه، گوشه‌های تیز. فونت‌های برند (Vazirmatn و JetBrains Mono) داخل افزونه میزبانی می‌شوند.
+![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-21759b?style=flat-square)
+![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat-square)
+![License](https://img.shields.io/badge/license-GPL--2.0--or--later-22d3ee?style=flat-square)
+![Dependencies](https://img.shields.io/badge/runtime%20dependencies-none-0b1020?style=flat-square)
+
+[فارسی](README.fa.md) · [Play the demo](demo/bytelab-pixel-siege-demo.html) · [Screenshots](screenshots/)
 
 ---
 
-## ۱) چه چیزی تحویل گرفته‌اید؟
+Drag a pixel bird back on the slingshot, let go, and watch Panel Navy towers fold. Twenty levels, three bird types, a star rating, a leaderboard and a JSON level editor — all inside a single WordPress plugin that ships with its own fonts and has **zero runtime dependencies**.
 
-| فایل | توضیح |
+![Gameplay](screenshots/02-level-3.png)
+
+## Features
+
+| | |
 | --- | --- |
-| `bytelab-pixel-siege.zip` | بستهٔ آمادهٔ نصب افزونه در وردپرس |
-| `bytelab-pixel-siege/` | سورس کامل افزونه (همان محتوای zip) |
-| `demo/bytelab-pixel-siege-demo.html` | دموی تک‌فایلی و مستقل؛ بدون وردپرس و بدون اینترنت باز می‌شود (فونت‌ها هم داخلش هستند) |
-| `screenshots/` | تصاویر واقعی از بازی (شروع، مرحله، جدول امتیازات، پایان مرحله، موبایل) |
-| `tools/` | اسکریپت‌های تست، ساخت دمو و دانلود فونت |
-| `README.md` | همین راهنما |
+| **Real physics** | Rotating rigid bodies, SAT collision, sequential impulses with warm starting, sleeping bodies, fixed 120 Hz step. Written for this plugin — no Box2D, no jQuery, no CDN. |
+| **20 levels** | From a single hut to a full three-storey keep and a flask built from 23 blocks. Hand-tuned and verified playable by an automated solver. |
+| **4 materials** | Panel, wall, glass and steel — each with its own mass, toughness and break behaviour. |
+| **3 birds** | **BYTE** (balanced), **BOLT** (dash in flight), **SPARK** (explodes on tap). |
+| **Briefing screen** | Every level opens with the birds you are given and what each one does. |
+| **Bird queue** | The rest of your squad waits behind the sling and hops into the pouch after each shot. |
+| **Leaderboard** | Top 10 per level over REST, with your own row highlighted. |
+| **Custom levels** | Paste JSON in the settings screen; it is validated and clamped server-side. |
+| **Brand fonts** | Vazirmatn + JetBrains Mono self-hosted (SIL OFL 1.1). No font CDN. |
+| **Accessible** | Full keyboard control, `aria-live` status, `prefers-reduced-motion`, visible focus rings. |
+| **Bilingual** | Persian (RTL) and English (LTR), picked from the WordPress locale. |
 
----
+## Screenshots
 
-## ۲) نصب در وردپرس
+| Briefing | Leaderboard |
+| --- | --- |
+| ![Briefing](screenshots/07-briefing.png) | ![Leaderboard](screenshots/05-leaderboard.png) |
 
-1. پیشخوان وردپرس → **افزونه‌ها → افزودن → بارگذاری افزونه**
-2. فایل `bytelab-pixel-siege.zip` را انتخاب و نصب کنید.
-3. **فعال‌سازی** کنید.
-4. در هر برگه/نوشته:
+| Level clear | Mobile |
+| --- | --- |
+| ![Level clear](screenshots/03-level-clear.png) | ![Mobile](screenshots/04-mobile.png) |
+
+## Requirements
+
+- WordPress 6.0 or newer
+- PHP 7.4 or newer
+- A browser with Canvas 2D and Pointer Events (every current browser)
+
+## Installation
+
+**From the admin:** Plugins → Add New → Upload Plugin → choose `bytelab-pixel-siege.zip` → Install → Activate.
+
+**From WP-CLI:**
+
+```bash
+wp plugin install bytelab-pixel-siege.zip --activate
+```
+
+**Manual:** copy the `bytelab-pixel-siege/` folder into `wp-content/plugins/` and activate it.
+
+## Usage
+
+Shortcode:
 
 ```
 [bytelab_pixel_siege level="1" height="640"]
 ```
 
-یا در ویرایشگر بلوک `/pixel-siege` را تایپ کنید.
-
-### ویژگی‌های شورت‌کد
-
-| ویژگی | پیش‌فرض | توضیح |
+| Attribute | Default | Description |
 | --- | --- | --- |
-| `level` | ۱ | شمارهٔ مرحلهٔ شروع (۱ تا ۲۰ و مراحل سفارشی) |
-| `height` | ۶۴۰ | بیشترین ارتفاع بازی به پیکسل (نسبت ۱۶:۹ حفظ می‌شود) |
-| `sound` | `1` | `0` برای شروع با صدای خاموش |
-| `title` | — | عنوان دلخواه (اختیاری) |
+| `level` | `1` | Starting level (1–20, or a custom level number) |
+| `height` | `640` | Maximum height in px; the game keeps a 16:9 ratio |
+| `sound` | `1` | `0` starts muted |
+| `title` | — | Optional heading |
 
----
+Block: search for **Pixel Siege** in the inserter, or type `/pixel-siege`.
 
-## ۳) طرز بازی
+Settings live under **Settings → BYTELAB Pixel Siege**: starting level, height, sound, guest scores, leaderboard, briefing screen, copy overrides and custom levels.
 
-- پرنده را با ماوس/انگشت از تیرکمان عقب بکشید و رها کنید.
-- در حال پرواز روی صحنه بزنید تا قابلیت پرنده فعال شود:
+## How to play
 
-| پرنده | رنگ | قابلیت |
+- Drag the bird back and release. A longer pull flies further; the dotted arc previews the shot.
+- Tap (or press space) while the bird is flying to trigger its ability.
+- Clear every bug to finish the level. Blocks in the way are fair game.
+- **Keyboard:** arrows aim, `Space`/`Enter` fires, `P`/`Esc` pauses, `R` restarts.
+
+| Bird | Colour | Ability |
 | --- | --- | --- |
-| **BYTE** | Lab Cyan | متعادل |
-| **BOLT** | Liquid Cyan | شتاب در پرواز |
-| **SPARK** | Spark Amber | انفجار |
+| BYTE | Lab Cyan | Balanced, no special move |
+| BOLT | Liquid Cyan | Dash forward in flight |
+| SPARK | Spark Amber | Explodes on tap, splash damage |
 
-- **کیبورد:** جهت‌ها نشانه‌گیری، `Space`/`Enter` شلیک، `P` یا `Esc` توقف، `R` شروع دوباره.
-- ۲۰ مرحله، ستاره بر اساس امتیاز، رکورد هر مرحله در مرورگر.
+## Level editor
 
----
-
-## ۴) فونت‌های برند (لوکال)
-
-هر دو خانواده داخل افزونه هستند و هیچ درخواستی به CDN فونت زده نمی‌شود:
-
-| فونت | فایل | وزن‌ها | حجم |
-| --- | --- | --- | --- |
-| Vazirmatn | `assets/fonts/Vazirmatn-*.woff2` | ۴۰۰ / ۵۰۰ / ۷۰۰ | ~۱۵۰KB |
-| JetBrains Mono | `assets/fonts/JetBrainsMono-*.woff2` | ۴۰۰ / ۷۰۰ (لاتین) | ~۴۲KB |
-
-- هر دو با مجوز **SIL OFL 1.1** هستند؛ متن مجوز کنار فایل‌ها: `OFL-Vazirmatn.txt` و `OFL-JetBrainsMono.txt`.
-- `@font-face` در `assets/css/fonts.css` تعریف شده و فقط وقتی فایل‌ها موجود باشند بارگذاری می‌شود؛ اگر پوشهٔ فونت را حذف کنید، بازی بی‌خطا به فونت سیستم برمی‌گردد.
-- به‌روزرسانی فایل‌ها: `node tools/fetch-fonts.js`
-
----
-
-## ۵) جدول امتیازات
-
-- دکمهٔ جام در HUD و دکمهٔ «جدول امتیازات» در صفحهٔ شروع.
-- ۱۰ رکورد برتر هر مرحله از REST خوانده می‌شود (`/wp-json/bytelab-pixel-siege/v1/leaderboard?level=N`).
-- نام بازیکن و ستاره‌ها نمایش داده می‌شود و ردیف خودِ کاربر با نوار سیان و پس‌زمینهٔ روشن مشخص می‌شود.
-- اگر کاربر در ۱۰ نفر اول نباشد، رکورد محلی خودش با علامت «شما» به لیست اضافه می‌شود.
-- اگر ذخیرهٔ امتیاز مهمان‌ها خاموش باشد یا جدول امتیازات غیرفعال شود، پیام مناسب نشان داده می‌شود (بدون خطا).
-- خاموش‌کردن: **تنظیمات → BYTELAB Pixel Siege → Expose the leaderboard endpoint**.
-
-> امتیازها فقط با فعال بودن «جدول امتیازات» ذخیره می‌شوند و نرخ ارسال محدود است (۶۰ در ساعت).
-
----
-
-## ۶) ساخت مرحلهٔ سفارشی (JSON)
-
-مرحله‌ها در **تنظیمات → BYTELAB Pixel Siege → Custom levels (JSON)** به‌صورت یک **آرایه** از مراحل وارد می‌شوند. هر مرحله:
+Paste an array of levels into **Settings → Custom levels (JSON)**:
 
 ```json
 [
@@ -101,96 +105,101 @@
       { "x": 1000, "baseY": 570, "w": 30, "h": 120, "m": "panel" },
       { "x": 950, "baseY": 450, "w": 160, "h": 24, "m": "wall" }
     ],
-    "bugs": [
-      { "x": 950, "surfaceY": 426, "r": 20 }
-    ]
+    "bugs": [{ "x": 950, "surfaceY": 426, "r": 20 }]
   }
 ]
 ```
 
-### قواعد
-
-| کلید | معنی |
+| Key | Meaning |
 | --- | --- |
-| `blocks[].x` | مرکز افقی بلوک (۰ تا ۱۲۸۰) |
-| `blocks[].baseY` | سطحی که بلوک روی آن می‌ایستد (پایین بلوک) |
-| `blocks[].y` | (جایگزین) مرکز عمودی بلوک |
-| `blocks[].w` / `h` | عرض و ارتفاع (۸ تا ۴۰۰) |
-| `blocks[].m` | `panel` · `wall` · `glass` · `deep` |
-| `bugs[].surfaceY` | سطحی که باگ روی آن می‌نشیند |
-| `bugs[].y` | (جایگزین) مرکز عمودی باگ |
-| `bugs[].r` | شعاع (۸ تا ۴۰) |
+| `blocks[].x` | Horizontal centre (0–1280) |
+| `blocks[].baseY` | Surface the block stands on, i.e. its bottom edge |
+| `blocks[].y` | Alternative: vertical centre |
+| `blocks[].w` / `h` | 8–400 |
+| `blocks[].m` | `panel` · `wall` · `glass` · `deep` · `steel` |
+| `bugs[].surfaceY` / `y` | Surface the bug sits on, or its centre |
+| `bugs[].r` | 8–40 |
 | `birds` | `byte` · `bolt` · `spark` |
 
-- زمین در ارتفاع `y = 570` است؛ هر بلوکی که `baseY: 570` بدهید روی زمین می‌نشیند.
-- بلوک‌ها را دقیقاً روی هم بگذارید تا برج پایدار بماند (مثلاً `baseY` هر طبقه = `y` سطح طبقهٔ قبل).
-- محدودیت‌ها: ۴۰ مرحله، ۹۰ بلوک، ۱۲ باگ، ۱۰ پرنده در هر مرحله.
-- ورودی سمت سرور اعتبارسنجی می‌شود: JSON خراب ذخیره نمی‌شود، مقادیر به بازه‌های مجاز clamp می‌شوند و متریال/پرندهٔ ناشناس به پیش‌فرض برمی‌گردد. مقادیر خارج از محدوده خطا نمی‌دهند، فقط اصلاح می‌شوند.
-- مراحل سفارشی بعد از ۲۰ مرحلهٔ داخلی اضافه می‌شوند و شماره‌گذاری ادامه پیدا می‌کند.
+The ground is at `y = 570`, so `"baseY": 570` puts a block on the floor. Limits: 40 levels, 90 blocks, 12 bugs and 10 birds per level. Invalid JSON is rejected and the previous levels are kept; out-of-range numbers are clamped, unknown materials and birds fall back to defaults.
 
-> نمونهٔ آمادهٔ تست: `[bytelab_pixel_siege level="21"]` بعد از افزودن اولین مرحلهٔ سفارشی.
+## Leaderboard
 
----
+`GET /wp-json/bytelab-pixel-siege/v1/leaderboard?level=3` returns the top ten for a level.
 
-## ۷) هم‌خوانی با استایل‌گاید
+`POST /wp-json/bytelab-pixel-siege/v1/score` with `{ "level": 3, "score": 4820, "stars": 3 }` stores a run. The endpoint is rate limited (60 submissions per hour per visitor) and scores are written with prepared statements.
 
-| قاعدهٔ برند | پیاده‌سازی |
-| --- | --- |
-| پالت | `#0B1020` پس‌زمینه، `#141B34` بلوک و پنل، `#22D3EE` رنگ اصلی، `#67E8F9` لبه و اوج، `#F59E0B` فقط لهجه، `#F8FAFC` متن |
-| نسبت ۶۰/۲۲/۱۳/۵ | تیره غالب؛ سیان برای بلوک‌ها و رابط؛ سفید برای متن و سنگ؛ کهربایی فقط نقطهٔ تأکید |
-| لوگوی فلاسک ۷×۶ | لوگوی هدر: گردن ۳ بلوک، بدنهٔ ۷ بلوک، ۸ بلوک مایع سیان، یک بلوک کهربایی در گردن |
-| بدون گرادیان/سایه | همهٔ رسم‌ها تخت با گوشهٔ تیز |
-| تایپوگرافی | Vazirmatn فارسی + JetBrains Mono لاتین (هر دو لوکال) |
-| کنتراست AA | سفید روی Navy، سیان روی Navy؛ کهربایی فقط تأکید کوتاه |
+The board is optional and can be switched off in the settings; the game degrades to a clear message instead of an error.
 
----
+## Brand system
 
-## ۸) ساختار فایل‌ها
+The game is a literal implementation of the BYTELAB style guide v1.3.
+
+| Token | Hex | Use |
+| --- | --- | --- |
+| Byte Navy | `#0B1020` | Primary surface |
+| Panel Navy | `#141B34` | Blocks, panels |
+| Lab Cyan | `#22D3EE` | Primary colour, links, accents |
+| Liquid Cyan | `#67E8F9` | Highlights, outlines |
+| Deep Cyan | `#0891B2` | Graphic accents |
+| Spark Amber | `#F59E0B` | The single accent (SPARK, bug eyes) |
+| Cloud White | `#F8FAFC` | Text, stone blocks |
+
+The logo is the guide's **7 × 6 pixel flask** — three-block neck, seven-block base, eight liquid blocks and one amber bubble. No gradients, no shadows, sharp corners.
+
+## Under the hood
 
 ```
-bytelab-pixel-siege/
-├── bytelab-pixel-siege.php
-├── uninstall.php
-├── readme.txt
-├── includes/
-│   ├── class-bytelab-ps-plugin.php
-│   ├── class-bytelab-ps-assets.php      (فونت‌ها + اسکریپت‌ها)
-│   ├── class-bytelab-ps-game.php        (شورت‌کد، بلوک، کانفیگ، رشته‌ها)
-│   ├── class-bytelab-ps-levels.php      (اعتبارسنجی JSON مراحل سفارشی)
-│   ├── class-bytelab-ps-scores.php      (دیتابیس + REST + جدول امتیازات)
-│   └── class-bytelab-ps-settings.php
-├── blocks/pixel-siege/                  (بلوک گوتنبرگ، بدون build)
+bytelab-pixel-siege/            the plugin
+├── bytelab-pixel-siege.php     bootstrap
+├── includes/                   settings, assets, game, levels, scores
+├── blocks/pixel-siege/         Gutenberg block (no build step)
 └── assets/
-    ├── fonts/                           (woff2 + مجوز OFL)
-    ├── js/physics.js  levels.js  sim.js  render.js  game.js
-    └── css/fonts.css  game.css  admin.css
+    ├── fonts/                  Vazirmatn + JetBrains Mono (OFL)
+    ├── js/physics.js           rigid-body engine
+    ├── js/levels.js            20 levels + JSON normaliser
+    ├── js/sim.js               rules, damage, scoring
+    ├── js/render.js            canvas art
+    ├── js/game.js              UI, input, sound, saves
+    └── css/                    fonts.css, game.css, admin.css
+demo/                           single-file offline demo
+tools/                          tests and build scripts
 ```
 
----
+The simulation runs at a fixed 120 Hz with a maximum of six catch-up steps per frame, so physics stays identical on 60 Hz and 144 Hz displays. Contacts are cached between steps and warm-started, which is what keeps a four-storey tower from creeping.
 
-## ۹) تست‌ها
+## Development
 
 ```bash
-node tools/test-levels.js     # هندسهٔ ۲۰ مرحله، پایداری ۶ ثانیه، قابلیت برد
-node tools/test-dom.js        # رابط: کلیک، شلیک، برد، ستاره، جدول امتیازات، مرحلهٔ سفارشی
-node tools/test-demo.js       # سلامت دموی تک‌فایلی
-php  tools/test-php-levels.php # ۲۵ تست اعتبارسنجی JSON
-node tools/build-demo.js      # بازسازی دمو
+node tools/build-demo.js       # rebuild demo/bytelab-pixel-siege-demo.html
+node tools/fetch-fonts.js      # re-download the OFL webfonts
+node tools/test-levels.js      # geometry, 6 s stability and winnability of all levels
+node tools/test-dom.js         # UI smoke test (shimmed DOM)
+node tools/test-demo.js        # single-file demo integrity
+php  tools/test-php-levels.php # JSON validator (25 assertions)
 ```
 
----
+`tools/rasterize.py` turns recorded draw calls into PNGs, which is how the visual checks in this repository were produced without a browser.
 
-## ۱۰) نکات فنی
+## Customisation
 
-- **بدون وابستگی خارجی:** نه jQuery، نه Box2D، نه CDN.
-- **فیزیک:** اجسام صلب دوبعدی، SAT، حل‌کنندهٔ impulse با warm starting، خواب اجسام، گام ثابت ۱۲۰Hz.
-- **امنیت:** escape کامل خروجی‌ها، REST با nonce و محدودیت نرخ، `$wpdb->prepare`، بررسی `manage_options`، اعتبارسنجی سمت سرور برای JSON.
-- **دسترس‌پذیری:** کیبورد کامل، `aria-live`، احترام به `prefers-reduced-motion`، فوکوس‌رینگ.
-- **چند نمونه در یک صفحه:** هر `div[data-bytelab-game]` مستقل بوت می‌شود.
-- **فیلتر توسعه:** `bytelab_ps_game_config`.
+```php
+add_filter( 'bytelab_ps_game_config', function ( $config ) {
+    $config['level'] = 7;
+    $config['showIntro'] = false;
+    return $config;
+} );
+```
 
----
+Copy overrides can also be set from the settings screen as `key=value` lines (`title=Pixel Siege`).
 
-## ۱۱) مجوز
+## Credits
 
-GPL-2.0-or-later. فونت‌ها: SIL OFL 1.1.
+- **Vazirmatn** by Saber Rastikerdar — SIL OFL 1.1
+- **JetBrains Mono** by JetBrains — SIL OFL 1.1
+
+Both are bundled with their license texts in `assets/fonts/`.
+
+## License
+
+GPL-2.0-or-later. See [LICENSE](LICENSE).

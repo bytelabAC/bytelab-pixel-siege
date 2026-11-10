@@ -4,7 +4,7 @@ Tags: game, physics, canvas, gamification, engagement
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,7 +63,17 @@ The palette is part of the BYTELAB brand system, so it is fixed on purpose. Titl
 
 == Changelog ==
 
+= 1.1.0 =
+* Level briefing with the bird roster and abilities.
+* Bird queue behind the slingshot with a hop-to-sling animation.
+* Steel material and tougher blocks for a steadier difficulty curve.
+* Redrawn birds and bugs, flight trails and wing animation.
+* Front-end leaderboard UI.
+* Custom levels as JSON, validated server-side.
+* Bundled Vazirmatn and JetBrains Mono webfonts.
+
 = 1.0.0 =
 * First release: twenty levels, three bird types, stars, local scores, leaderboard UI, custom level JSON, bundled brand fonts, shortcode and Gutenberg block.
+
 
 
